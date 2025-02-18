@@ -1,75 +1,84 @@
 import matplotlib.pyplot as plt
 
 
-def P(T, R, a, b):
+def P_1(T, R, a, b):  # функция чтобы рисовать график
     T += 273.15
-    global V_list, P_list
-    V_list, P_list = [], []
+    global X, Y
+    X, Y = [], []
     v = b + 10**-5
     while v < 10**-3:
-        V_list.append(v)
+        X.append(v)
         p = R * T / (v - b) - a/v**2
-        P_list.append(p)
+        Y.append(p)
         v += (pow(10, -3) - (b + pow(10, -5))) / 10000
     v = 10**-3
+    X.append(v)
     p = R * T / (v - b) - a / v ** 2
+    Y.append(p)
+
 
 
 b = 3.19 * 10 ** -5
-P(-130, 8.314, 0.1382, b)
-plt.plot(V_list, P_list)
+P_1(-130, 8.314, 0.1382, b)
+plt.plot(X, Y)
 
 
-def minSearch(X, Y, eps): # этот ужас я доделаю
+def minSearch(X, eps):  # функция рисует точку минимума
     a = 0
-    b = len(X) - 1
-    x1 = (a + b - eps) / 2
-    x2 = (a + b + eps) / 2
-    flag1 = False
-    flag2 = False
-    for i in range(len(X)):
-        if i >= x1 and flag1 == False:
-            flag1 = True
-            x1 = i
-        if i >= x2 and flag2 == False:
-            flag2 = True
-            x2 = i
-            break
-
-    while x2 - x1 > eps:
-        if Y(X[x1]) <= Y(X[x2]):
+    b = round((len(X) - 1) / 6)     # рассматривается первая шестая часть множества аргументов, иначе ищет минимум не там, где надо
+    x1 = round((a + b - eps) / 2)
+    x2 = round((a + b + eps) / 2)
+    while b - a > 2*eps:
+        if P(X[x1]) <= P(X[x2]):
             b = x2
         else:
             a = x1
-        x1 = (a + b - eps) / 2
-        x2 = (a + b + eps) / 2
-        flag1 = False
-        flag2 = False
-        for i in range(len(X)):
-            if i >= x1 and flag1 == False:
-                flag1 = True
-                x1 = i
-            if i >= x2 and flag2 == False:
-                flag2 = True
-                x2 = i
-                break
+        x1 = round((a + b - eps) / 2)
+        x2 = round((a + b + eps) / 2)
+    plt.scatter(X[x1], P(X[x1]), color='blue')
+    return X[x1]
+
+def maxSearch(X, eps): # функция рисует точку максимума
+    a = 0   # от нулевого аргумента (нулевого числа в массиве X)
+    b = round((len(X) - 1) / 6)     # рассматривается первая шестая часть множества аргументов, иначе ищет минимум не там, где надо
+    x1 = round((a + b - eps) / 2)
+    x2 = round((a + b + eps) / 2)
+    while b - a > 2*eps:
+        if P(X[x1]) >= P(X[x2]):
+            b = x2
+        else:
+            a = x1
+        x1 = round((a + b - eps) / 2)
+        x2 = round((a + b + eps) / 2)
+    plt.scatter(X[x1], P(X[x1]), color='red')
+    return X[x1]
 
 
 
-    # plt.scatter(x1, Y(X[x1]), color='red')
-
-    print(X[x1])
-
-
-def Y(v):
+def P(V):   # функция возвращает значение P(v)
     R = 8.314
     a = 0.1382
     b = 3.19 * 10 ** -5
     T = -130 + 273.15
-    return R * T / (v - b) - a/v**2
+    return R * T / (V - b) - a/V**2
 
 
-eps = (pow(10, -3) - (b + pow(10, -5))) / 1000
-minSearch(V_list, P_list, eps)
+def drawGraph(func, a, b):
+    global X, Y
+    X, Y = [], []
+    x = a
+    while x < b:
+        X.append(x)
+        Y.append(func(x))
+        x += (b - a) / 10000
+    X.append(b)
+    Y.append(func(b))
 
+b = 3.19 * 10 ** -5
+drawGraph(P, b + 10 ** -5, 10 ** -3)
+
+
+eps = 1     # точность до одного шага итерации (одного числа в массиве X)
+minSearch(X, eps)
+maxSearch(X, eps)
 plt.show()
